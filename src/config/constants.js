@@ -98,8 +98,7 @@ export const CFDI_UTILS = {
       maximumFractionDigits: 2
     }).format(amount || 0)
   },
-  
-  // Formatear fecha para CFDI
+    // Formatear fecha para CFDI
   formatDateForCfdi(date) {
     if (!date) return ''
     const d = new Date(date)
@@ -111,9 +110,26 @@ export const CFDI_UTILS = {
   getCurrentCfdiDate() {
     return this.formatDateForCfdi(new Date())
   },
+    // Redondear a 4 decimales (para conceptos)
+  roundToFour(num) {
+    return Math.round((num + Number.EPSILON) * 10000) / 10000
+  },
   
-  // Redondear a 2 decimales
+  // Redondear a 2 decimales (para valores unitarios)
   roundToTwo(num) {
     return Math.round((num + Number.EPSILON) * 100) / 100
+  },
+    // Formatear número como string con 4 decimales para envío al API
+  formatToString(num, precision = 4) {
+    // Si el número es undefined o null, regresar "0.00" o "0.0000"
+    if (num === undefined || num === null) {
+      return precision === 2 ? "0.00" : "0.0000"
+    }
+    
+    const roundedTwo = this.roundToTwo(num)
+    const roundedFour = this.roundToFour(num)
+    
+    // Forzar formato con decimales como string (necesario para el API)
+    return precision === 2 ? roundedTwo.toFixed(2) : roundedFour.toFixed(4)
   }
 }
