@@ -23,8 +23,8 @@ export class ExcelService {
         'Concepto2_Descuento': '',
         'Concepto2_Base': '',
         'Concepto2_ImporteIVA': '',
-        'RutaId': 'RUTA001',
-        'Shipments': 'SHIP001'
+        'RutaId': 'RUTA001, RUTA002, RUTA003',
+        'Shipments': 'SHIP001, SHIP002, SHIP003'
       }
     ]
     
@@ -47,11 +47,10 @@ export class ExcelService {
       { wch: 15 }, // Concepto2_Cantidad
       { wch: 18 }, // Concepto2_ValorUnitario
       { wch: 15 }, // Concepto2_Importe
-      { wch: 18 }, // Concepto2_Descuento
-      { wch: 15 }, // Concepto2_Base
+      { wch: 18 }, // Concepto2_Descuento      { wch: 15 }, // Concepto2_Base
       { wch: 18 }, // Concepto2_ImporteIVA
-      { wch: 15 }, // RutaId
-      { wch: 15 }  // Shipments
+      { wch: 25 }, // RutaId (aumentado para múltiples valores)
+      { wch: 25 }  // Shipments (aumentado para múltiples valores)
     ]
     ws['!cols'] = colWidths
     

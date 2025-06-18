@@ -16,11 +16,15 @@
         <span class="icon">{{ validations.totals ? '✅' : '❌' }}</span>
         <span class="text">Totales calculados</span>
         <span class="detail">{{ getTotalsDetail() }}</span>
-      </div>
-      <div class="validation-item" :class="{ 'valid': validations.apiConfig, 'invalid': !validations.apiConfig }">
+      </div>      <div class="validation-item" :class="{ 'valid': validations.apiConfig, 'invalid': !validations.apiConfig }">
         <span class="icon">{{ validations.apiConfig ? '✅' : '❌' }}</span>
         <span class="text">Configuración API</span>
         <span class="detail">{{ getApiConfigDetail() }}</span>
+      </div>
+      <div class="validation-item" :class="{ 'valid': validations.addenda, 'invalid': !validations.addenda }">
+        <span class="icon">{{ validations.addenda ? '✅' : '❌' }}</span>
+        <span class="text">Addenda completa</span>
+        <span class="detail">{{ getAddendaDetail() }}</span>
       </div>
     </div>
     <div class="overall-status" :class="{ 'ready': isFormReady, 'not-ready': !isFormReady }">
@@ -40,6 +44,10 @@ const props = defineProps({
   apiConfig: {
     type: Object,
     required: true
+  },
+  addendaData: {
+    type: Object,
+    required: true
   }
 })
 
@@ -54,11 +62,16 @@ const validations = computed(() => {
   
   const apiConfig = !!(props.apiConfig.url && props.apiConfig.token)
   
+  // Validar que Addenda esté completa
+  const addenda = !!(props.addendaData.rutaId && props.addendaData.rutaId.trim() && 
+                     props.addendaData.shipments && props.addendaData.shipments.trim())
+  
   return {
     basicInfo,
     concepts,
     totals,
-    apiConfig
+    apiConfig,
+    addenda
   }
 })
 
@@ -101,6 +114,15 @@ const getApiConfigDetail = () => {
   if (!props.apiConfig.token) missing.push('Token')
   
   if (missing.length === 0) return 'Configurado'
+  return `Falta: ${missing.join(', ')}`
+}
+
+const getAddendaDetail = () => {
+  const missing = []
+  if (!props.addendaData.rutaId || !props.addendaData.rutaId.trim()) missing.push('Ruta ID')
+  if (!props.addendaData.shipments || !props.addendaData.shipments.trim()) missing.push('Shipments')
+  
+  if (missing.length === 0) return 'Completa'
   return `Falta: ${missing.join(', ')}`
 }
 </script>

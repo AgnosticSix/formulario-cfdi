@@ -30,7 +30,7 @@ export function useNotifications() {
 
 export function useApiConfig() {
   const apiConfig = reactive({
-    url: localStorage.getItem('cfdi_api_url') || '',
+    url: localStorage.getItem('cfdi_api_url') || 'https://services.sw.com.mx/v3/cfdi33/issue/json/v4',
     token: localStorage.getItem('cfdi_api_token') || ''
   })
 

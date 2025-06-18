@@ -1,14 +1,17 @@
 <template>
   <div class="totals-summary">
-    <h4>Resumen de Totales</h4>
-    <div class="totals-grid">
+    <h4>Resumen de Totales</h4>    <div class="totals-grid">
       <div class="total-item">
-        <span class="total-label">Subtotal:</span>
-        <span class="total-value">{{ formatCurrency(totals.subtotal) }}</span>
+        <span class="total-label">Subtotal por Partida:</span>
+        <span class="total-value">{{ formatCurrency(totals.subtotalPartida) }}</span>
       </div>
       <div class="total-item">
         <span class="total-label">Descuento:</span>
         <span class="total-value discount">{{ formatCurrency(totals.descuento) }}</span>
+      </div>
+      <div class="total-item">
+        <span class="total-label">Subtotal:</span>
+        <span class="total-value">{{ formatCurrency(totals.subtotal) }}</span>
       </div>
       <div class="total-item">
         <span class="total-label">IVA (16%):</span>
@@ -18,6 +21,9 @@
         <span class="total-label">Total:</span>
         <span class="total-value">{{ formatCurrency(totals.total) }}</span>
       </div>
+    </div>    <div class="calculation-note">
+      <small>SubTotal = Subtotal por Partida (suma bruta de importes)</small>
+      <small>Total = SubTotal - Descuentos + IVA</small>
     </div>
     <div class="concepts-count">
       <small>{{ conceptsCount }} concepto{{ conceptsCount !== 1 ? 's' : '' }}</small>
@@ -36,12 +42,24 @@ const props = defineProps({
   }
 })
 
-const totals = computed(() => ({
-  subtotal: props.formData.SubTotal || 0,
-  descuento: props.formData.Descuento || 0,
-  iva: props.formData.Impuestos?.TotalImpuestosTrasladados || 0,
-  total: props.formData.Total || 0
-}))
+const totals = computed(() => {
+  // Calcular subtotal por partida (suma bruta de todos los importes de conceptos)
+  const subtotalPartida = props.formData.Conceptos?.reduce((sum, concepto) => {
+    return sum + (concepto.Importe || 0)
+  }, 0) || 0
+  
+  // Calcular total de descuentos (de conceptos + descuento global)
+  const totalDescuentos = props.formData.Conceptos?.reduce((sum, concepto) => {
+    return sum + (concepto.Descuento || 0)
+  }, 0) || 0
+    return {
+    subtotalPartida, // Suma bruta de importes
+    subtotal: props.formData.SubTotal - totalDescuentos, // Ahora SubTotal ES el subtotal por partida (suma bruta)
+    descuento: totalDescuentos, // Total de todos los descuentos
+    iva: props.formData.Impuestos?.TotalImpuestosTrasladados || 0,
+    total: props.formData.Total || 0
+  }
+})
 
 const conceptsCount = computed(() => props.formData.Conceptos?.length || 0)
 
@@ -112,6 +130,21 @@ const formatCurrency = (amount) => {
 }
 
 .concepts-count small {
+  font-style: italic;
+}
+
+.calculation-note {
+  text-align: center;
+  margin-top: 10px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 5px;
+  border: 1px solid #dee2e6;
+}
+
+.calculation-note small {
+  color: #495057;
+  font-weight: 500;
   font-style: italic;
 }
 </style>
