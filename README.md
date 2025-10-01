@@ -11,7 +11,8 @@ Aplicación web desarrollada con Copilot modo Agente, con Vue.js 3 y Vite para l
 - ✅ Exportación de archivos XML
 - ✅ Interfaz moderna y responsiva
 - ✅ Validación de datos
-- ✅ Cálculo automático de totales e impuestos
+- ✅ **Entrada manual de valores con verificación**
+- ✅ Verificación de totales e impuestos
 
 ## Tecnologías Utilizadas
 
@@ -59,11 +60,51 @@ npm run build
   3. Carga el archivo Excel
   4. Aplica los datos al formulario
 
+### Entrada Manual y Verificación
+1. Llena manualmente todos los campos (Cantidad, Valor Unitario, Importe, Base IVA, Importe IVA, SubTotal, Total)
+2. Haz clic en "Verificar Totales" para validar que los valores ingresados sean correctos
+3. El sistema mostrará:
+   - ✅ **Mensaje de éxito** si todos los valores son correctos
+   - ❌ **Lista de errores** con los valores incorrectos y los esperados
+
 ### Envío y Exportación
 1. Configura todos los datos necesarios
-2. Usa "Calcular Totales" para recalcular automáticamente
+2. Verifica los totales usando "Verificar Totales"
 3. Envía el CFDI al API
 4. El archivo XML se descargará automáticamente si la respuesta es exitosa
+
+## Entrada Manual con Verificación
+
+Esta funcionalidad permite la captura manual de todos los valores del CFDI, con un sistema de verificación que valida que los montos totales sean correctos.
+
+### Campos Editables
+Todos los campos calculados ahora son editables manualmente:
+- **Por Concepto:**
+  - Importe (Cantidad × Valor Unitario)
+  - Base IVA (Importe - Descuento)
+  - Importe IVA (Base × 16%)
+- **Totales Globales:**
+  - SubTotal (suma de todos los importes)
+  - Total (SubTotal - Descuentos + IVA)
+
+### Proceso de Verificación
+1. Ingresa manualmente todos los valores en el formulario
+2. Presiona el botón "✅ Verificar Totales"
+3. El sistema valida:
+   - Que el Importe de cada concepto coincida con Cantidad × Valor Unitario
+   - Que la Base IVA coincida con Importe - Descuento
+   - Que el Importe IVA coincida con Base × 16%
+   - Que el SubTotal global coincida con la suma de importes
+   - Que el Total coincida con SubTotal - Descuentos + IVA
+4. Recibe retroalimentación inmediata:
+   - ✅ Verde: Todos los valores son correctos
+   - ❌ Rojo: Lista detallada de errores con valores esperados
+
+### Beneficios
+- Control total sobre los valores ingresados
+- Validación precisa antes del envío
+- Identificación clara de discrepancias
+- Mayor flexibilidad en casos especiales
 
 ## Estructura de Datos CFDI
 
