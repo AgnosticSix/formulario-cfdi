@@ -127,4 +127,87 @@ export class CfdiCalculator {  static calculateConceptoTotals(concepto) {
       values
     }
   }
+
+  // Verificar totales ingresados manualmente
+  static verifyTotals(formData) {
+    const errors = []
+    const warnings = []
+    
+    let expectedSubtotal = 0
+    let expectedTotalDescuentos = 0
+    let expectedTotalIva = 0
+    
+    // Verificar cada concepto
+    formData.Conceptos.forEach((concepto, index) => {
+      // Calcular importe esperado
+      const expectedImporte = CFDI_UTILS.roundToFour(concepto.Cantidad * concepto.ValorUnitario)
+      const actualImporte = concepto.Importe || 0
+      
+      if (Math.abs(expectedImporte - actualImporte) > 0.01) {
+        errors.push(
+          `Concepto ${index + 1}: Importe ingresado (${actualImporte.toFixed(4)}) no coincide con el cálculo esperado (${expectedImporte.toFixed(4)})`
+        )
+      }
+      
+      // Calcular base esperada para IVA
+      const descuento = concepto.Descuento || 0
+      const expectedBase = CFDI_UTILS.roundToFour(concepto.Importe - descuento)
+      const actualBase = concepto.Impuestos.Traslados[0].Base || 0
+      
+      if (Math.abs(expectedBase - actualBase) > 0.01) {
+        errors.push(
+          `Concepto ${index + 1}: Base IVA ingresada (${actualBase.toFixed(4)}) no coincide con el cálculo esperado (${expectedBase.toFixed(4)})`
+        )
+      }
+      
+      // Calcular IVA esperado
+      const expectedIva = CFDI_UTILS.roundToFour(
+        concepto.Impuestos.Traslados[0].Base * CFDI_CONSTANTS.IMPUESTOS.IVA.TASA
+      )
+      const actualIva = concepto.Impuestos.Traslados[0].Importe || 0
+      
+      if (Math.abs(expectedIva - actualIva) > 0.01) {
+        errors.push(
+          `Concepto ${index + 1}: IVA ingresado (${actualIva.toFixed(4)}) no coincide con el cálculo esperado (${expectedIva.toFixed(4)})`
+        )
+      }
+      
+      // Acumular totales esperados
+      expectedSubtotal += concepto.Importe || 0
+      expectedTotalDescuentos += concepto.Descuento || 0
+      expectedTotalIva += concepto.Impuestos.Traslados[0].Importe || 0
+    })
+    
+    // Verificar SubTotal global
+    const expectedSubtotalRounded = CFDI_UTILS.roundToTwo(expectedSubtotal)
+    const actualSubtotal = formData.SubTotal || 0
+    
+    if (Math.abs(expectedSubtotalRounded - actualSubtotal) > 0.01) {
+      errors.push(
+        `SubTotal ingresado (${actualSubtotal.toFixed(2)}) no coincide con la suma de importes (${expectedSubtotalRounded.toFixed(2)})`
+      )
+    }
+    
+    // Verificar Total global
+    const expectedSubtotalNeto = CFDI_UTILS.roundToTwo(expectedSubtotal - expectedTotalDescuentos)
+    const expectedTotal = CFDI_UTILS.roundToTwo(expectedSubtotalNeto + expectedTotalIva)
+    const actualTotal = formData.Total || 0
+    
+    if (Math.abs(expectedTotal - actualTotal) > 0.01) {
+      errors.push(
+        `Total ingresado (${actualTotal.toFixed(2)}) no coincide con el cálculo esperado (${expectedTotal.toFixed(2)})`
+      )
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      expectedValues: {
+        subtotal: expectedSubtotalRounded,
+        total: expectedTotal,
+        totalIva: CFDI_UTILS.roundToTwo(expectedTotalIva)
+      }
+    }
+  }
 }

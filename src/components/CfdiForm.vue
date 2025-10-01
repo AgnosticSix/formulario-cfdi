@@ -145,8 +145,6 @@
               type="number"
               step="0.0001"
               class="form-control"
-              readonly
-              style="background-color: #f8f9fa"
             />
           </div>
           <div class="form-group">
@@ -165,8 +163,6 @@
               type="number"
               step="0.0001"
               class="form-control"
-              readonly
-              style="background-color: #f8f9fa"
             />
           </div>
         </div>
@@ -216,7 +212,6 @@
                 type="number"
                 step="0.0001"
                 class="form-control"
-                @input="calculateTotals"
               />
             </div>
             <div class="form-group">
@@ -226,7 +221,6 @@
                 type="number"
                 step="0.01"
                 class="form-control"
-                @input="calculateTotals"
               />
             </div>
             <div class="form-group">
@@ -236,8 +230,6 @@
                 type="number"
                 step="0.0001"
                 class="form-control"
-                readonly
-                style="background-color: #f8f9fa"
               />
             </div>
             <div class="form-group">
@@ -247,7 +239,6 @@
                 type="number"
                 step="0.0001"
                 class="form-control"
-                @input="calculateTotals"
               />
             </div>
           </div>
@@ -259,8 +250,6 @@
                 type="number"
                 step="0.0001"
                 class="form-control"
-                readonly
-                style="background-color: #f8f9fa"
               />
             </div>
             <div class="form-group">
@@ -270,8 +259,6 @@
                 type="number"
                 step="0.0001"
                 class="form-control"
-                readonly
-                style="background-color: #f8f9fa"
               />
             </div>
           </div>
@@ -366,8 +353,8 @@
       </div>
       <!-- Botones de acción -->
       <div class="form-actions">
-        <button type="button" @click="calculateTotals" class="btn btn-info">
-          🧮 Calcular Totales
+        <button type="button" @click="verifyTotals" class="btn btn-info">
+          ✅ Verificar Totales
         </button>
         <button type="button" @click="clearForm" class="btn btn-secondary">
           🗑️ Limpiar Formulario
@@ -375,6 +362,25 @@
         <button type="submit" :disabled="isSubmitting" class="btn btn-success">
           {{ isSubmitting ? "⏳ Enviando..." : "📤 Enviar CFDI" }}
         </button>
+      </div>
+      
+      <!-- Resultado de verificación -->
+      <div v-if="verificationResult" class="verification-result" :class="verificationResult.isValid ? 'valid' : 'invalid'">
+        <h4>{{ verificationResult.isValid ? '✅ Verificación Exitosa' : '❌ Errores en la Verificación' }}</h4>
+        <div v-if="!verificationResult.isValid && verificationResult.errors.length > 0">
+          <ul>
+            <li v-for="(error, index) in verificationResult.errors" :key="index">{{ error }}</li>
+          </ul>
+        </div>
+        <div v-if="verificationResult.isValid" class="success-message">
+          <p>Todos los valores ingresados son correctos y coinciden con los cálculos esperados.</p>
+          <p><strong>Valores verificados:</strong></p>
+          <ul>
+            <li>SubTotal: {{ verificationResult.expectedValues.subtotal.toFixed(2) }}</li>
+            <li>Total IVA: {{ verificationResult.expectedValues.totalIva.toFixed(2) }}</li>
+            <li>Total: {{ verificationResult.expectedValues.total.toFixed(2) }}</li>
+          </ul>
+        </div>
       </div>
     </form>
 
@@ -608,23 +614,25 @@ const addConcepto = () => {
 
 const removeConcepto = (index) => {
   formData.Conceptos.splice(index, 1);
-  calculateTotals();
+  verificationResult.value = null; // Clear verification when removing concepto
 };
 
-// Calcular totales
-const calculateTotals = () => {
+// Estado de verificación
+const verificationResult = ref(null);
+
+// Verificar totales ingresados manualmente
+const verifyTotals = () => {
   try {
-    // Calcular totales para cada concepto
-    formData.Conceptos.forEach((concepto) => {
-      CfdiCalculator.calculateConceptoTotals(concepto);
-    });
-
-    // Calcular totales globales
-    CfdiCalculator.calculateGlobalTotals(formData);
-
-    showMessage("Totales calculados correctamente", "success");
+    verificationResult.value = CfdiCalculator.verifyTotals(formData);
+    
+    if (verificationResult.value.isValid) {
+      showMessage("✅ Todos los valores son correctos", "success");
+    } else {
+      showMessage("❌ Se encontraron errores en los valores ingresados", "error");
+    }
   } catch (error) {
-    showMessage("Error al calcular totales: " + error.message, "error");
+    showMessage("Error al verificar totales: " + error.message, "error");
+    verificationResult.value = null;
   }
 };
 
@@ -1407,6 +1415,49 @@ const submitForm = async () => {
   background: #d1ecf1;
   color: #0c5460;
   border: 1px solid #b8daff;
+}
+
+/* Estilos para resultado de verificación */
+.verification-result {
+  margin: 20px 0;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.verification-result.valid {
+  background: #d4edda;
+  border: 2px solid #28a745;
+  color: #155724;
+}
+
+.verification-result.invalid {
+  background: #f8d7da;
+  border: 2px solid #dc3545;
+  color: #721c24;
+}
+
+.verification-result h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.verification-result ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.verification-result li {
+  margin: 5px 0;
+}
+
+.verification-result .success-message {
+  margin-top: 10px;
+}
+
+.verification-result .success-message p {
+  margin: 10px 0;
 }
 
 @media (max-width: 768px) {
